@@ -69,6 +69,18 @@ def compatible_encode_method(bytesorstring, encoding='utf-8',
     assert isinstance(bytesorstring, bytes), str(type(bytesorstring))
     return bytesorstring.decode(encoding, erraction)
 
+def PaethPredictor(a, b, c):
+    p = a + b - c
+    pa = abs(p - a)
+    pb = abs(p - b)
+    pc = abs(p - c)
+    if pa <= pb and pa <= pc:
+        Pr = a
+    elif pb <= pc:
+        Pr = b
+    else:
+        Pr = c
+    return Pr
 
 def apply_png_predictor(pred, colors, columns, bitspercomponent, data):
     if bitspercomponent != 8:
@@ -103,6 +115,12 @@ def apply_png_predictor(pred, colors, columns, bitspercomponent, data):
             for (a, b) in zip(line0, line1):
                 c = ((c + a + b) // 2) & 255
                 line2 += bytes((c,))
+        elif ft == 4:
+            # PNG PAETH
+            c = 0
+            for (a, b) in zip(line0, line1):
+                pr = PaethPredictor(a, b, c) & 255
+                line2 += bytes((pr,))
         else:
             # unsupported
             raise ValueError("Unsupported predictor value: %d" % ft)
